@@ -1,14 +1,16 @@
 #include "unionfs.h"
 
+#include <Windows.h>
+
 namespace UnionFS {
-	Options::Options()
-		:_error(NULL) {
+	Options::Options() :_error(NULL) {
+		ZeroMemory(&_dokanOptions, sizeof(DOKAN_OPTIONS));
+		_dokanOptions.Version = DOKAN_VERSION;
+		_dokanOptions.ThreadCount = 0; // use default
 	}
 
 	Options::~Options() {
-		if (_error) {
-			delete _error;
-		}
+		delete _error;
 	}
 
 	// Usage design:

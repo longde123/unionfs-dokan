@@ -6,12 +6,11 @@ namespace UnionFS {
 	// I'm the options of UnionFS, I parse the command line to determine the options.
 	struct Options {
 		DOKAN_OPTIONS _dokanOptions;
-		LPCWSTR _error;
-		BOOL _isDebug;
+		LPSTR _error;
 	public:
 		Options();
 		~Options();
-		LPCWSTR Error() const { return _error; }
+		LPCSTR Error() const { return _error; }
 		BOOL Parse(ULONG argc, PWCHAR argv[]);
 	};
 
