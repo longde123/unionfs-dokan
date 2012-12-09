@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TARGETNAME Condition="'$(OVERRIDE_TARGETNAME)'!='true'">unionfs</TARGETNAME>
+    <TARGETTYPE Condition="'$(OVERRIDE_TARGETTYPE)'!='true'">PROGRAM</TARGETTYPE>
+    <C_DEFINES Condition="'$(OVERRIDE_C_DEFINES)'!='true'">$(C_DEFINES) -DUNICODE -D_UNICODE</C_DEFINES>
+    <TARGETLIBS Condition="'$(OVERRIDE_TARGETLIBS)'!='true'">$(SDK_LIB_PATH)\kernel32.lib  		   $(SDK_LIB_PATH)\user32.lib  		   $(SDK_LIB_PATH)\advapi32.lib</TARGETLIBS>
+    <USE_MSVCRT Condition="'$(OVERRIDE_USE_MSVCRT)'!='true'">1</USE_MSVCRT>
+    <INCLUDES Condition="'$(OVERRIDE_INCLUDES)'!='true'">..\sys</INCLUDES>
+    <SOURCES Condition="'$(OVERRIDE_SOURCES)'!='true'">unionfs.cpp</SOURCES>
+    <UMTYPE Condition="'$(OVERRIDE_UMTYPE)'!='true'">windows</UMTYPE>
+  </PropertyGroup>
+</Project>
