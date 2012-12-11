@@ -86,7 +86,12 @@
   <!-- The WrappedTaskItems label is used by the conversion tool to identify the location where items 
         associated with wrapped tasks will reside.-->
   <ItemGroup Label="WrappedTaskItems">
+    <ClCompile Include="src\branch.cpp" />
+    <ClCompile Include="src\logger.cpp" />
+    <ClCompile Include="src\ops.cpp" />
     <ClCompile Include="src\options.cpp" />
+    <ClCompile Include="src\service.cpp" />
+    <ClCompile Include="src\sys.cpp" />
     <ClCompile Include="src\unionfs.cpp" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -141,6 +146,10 @@
     <None Exclude="@(None)" Include="*.def;*.bat;*.hpj;*.asmx" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\branch.h" />
+    <ClInclude Include="src\logger.h" />
+    <ClInclude Include="src\ops.h" />
+    <ClInclude Include="src\sys.h" />
     <ClInclude Include="src\unionfs.h" />
   </ItemGroup>
   <!-- /Necessary to pick up propper files from local directory when in the IDE-->

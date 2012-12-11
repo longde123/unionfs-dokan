@@ -1,41 +1,35 @@
 #include "unionfs.h"
 
+#include "branch.h"
+#include "logger.h"
+#include "sys.h"
+#include "ops.h"
+
 #include <Windows.h>
 #include <tchar.h>
 #include <stdio.h>
 
-namespace UnionFS {
+#include <assert.h>
 
-static int DOKAN_CALLBACK CreateFile(
-	LPCWSTR					FileName,
-	DWORD					AccessMode,
-	DWORD					ShareMode,
-	DWORD					CreationDisposition,
-	DWORD					FlagsAndAttributes,
-	PDOKAN_FILE_INFO		DokanFileInfo)
+using namespace UnionFS;
+
+int __cdecl wmain(ULONG argc, PWCHAR argv[]) 
 {
-	return 0;
-}
+	BranchService branchService;
+	LoggerService loggerService;
+	SysService    sysService;
+	ServiceRegister(Branch, &branchService);
+	ServiceRegister(Logger, &loggerService);
+	ServiceRegister(Sys,    &sysService);
 
-
-struct Operations : public DOKAN_OPERATIONS {
-	Operations() {
-		this->CreateFile = UnionFS::CreateFile;
-	}
-};
-
-}
-
-
-int __cdecl wmain(ULONG argc, PWCHAR argv[]) {
-	UnionFS::Options opts;
+	Options opts;
 	if (!opts.Parse(argc, argv)) {
 		fprintf(stderr, opts.Error());
 		return -1;
 	}
-
-	UnionFS::Operations operations;
-	int status = DokanMain(&opts._dokanOptions, &operations);
+	
+	Operations operations;
+	int status = DokanMain(opts.dokanOptions(), &operations);
 	switch(status)
 	{
 	case DOKAN_SUCCESS:

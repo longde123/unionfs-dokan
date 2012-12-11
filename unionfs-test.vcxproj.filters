@@ -19,6 +19,30 @@
     <ClCompile Include="src\options.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="test\createfile_test.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="src\branch.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\logger.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ops.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\service.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sys.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="test\createdirectory_test.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="test\opendirectory_test.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test\yaffut.h">

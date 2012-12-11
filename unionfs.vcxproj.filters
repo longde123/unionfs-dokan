@@ -12,9 +12,36 @@
     <ClCompile Include="src\options.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="src\branch.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\service.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\logger.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sys.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ops.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\unionfs.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\branch.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\logger.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sys.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ops.h">
       <Filter>Sources</Filter>
     </ClInclude>
   </ItemGroup>
