@@ -133,6 +133,23 @@ struct comparer
     return a == b;
   }
 };
+template <>
+struct comparer<const wchar_t*>
+{
+  static inline bool compare(const wchar_t* a, const wchar_t* b)
+  {
+      return wcscmp(a,b) == 0;
+  }
+};
+template <>
+struct comparer<const char*>
+{
+  static inline bool compare(const char* a, const char* b)
+  {
+      return strcmp(a,b) == 0;
+  }
+};
+
 
 template <typename A = NullType, typename B = NullType, typename C = NullType, typename D = NullType, 
 		  typename E = NullType, typename F = NullType, typename G = NullType, typename H = NullType, 

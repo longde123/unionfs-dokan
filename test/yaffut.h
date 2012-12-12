@@ -47,12 +47,15 @@ std::string demangle()
   static const std::string struct_prefix("struct ");
   static const std::string class_prefix("class ");
   static const std::string ptr_postfix(" *");
-
+  static const std::string anon_namespace_prefix("`anonymous namespace'::");
+      
   std::string::size_type
   at = name.find(struct_prefix);
   if(at != std::string::npos) { name.erase(at, struct_prefix.size()); }
   at = name.find(class_prefix);
   if(at != std::string::npos) { name.erase(at, class_prefix.size()); }
+  at = name.find(anon_namespace_prefix);
+  if(at != std::string::npos) { name.erase(at, anon_namespace_prefix.size()); }
   at = name.find(ptr_postfix);
   if(at != std::string::npos) { name.erase(at, ptr_postfix.size()); }
 #else
@@ -212,6 +215,13 @@ public:
   }
 };
 
+inline std::ostream& operator << (std::ostream& o, const wchar_t* w)
+{
+  std::wstring ws(w);
+  o << std::string(ws.begin(), ws.end());
+  return o;
+}
+
 class failure: public std::exception
 {
   std::string failure_;
@@ -312,6 +322,13 @@ inline void equal(const char* e, const char* a, const char* at = "", const char*
   {
     throw failure(e, a, at, expr);
   }
+}
+inline void equal(const wchar_t* e, const wchar_t* a, const char* at = "", const char* expr = "")
+{
+  if(std::wstring(e) != std::wstring(a))
+  {
+    throw failure(e, a, at, expr);
+  } 
 }
 inline void equal(double e, double a, const char* at = "", const char* expr = "")
 {

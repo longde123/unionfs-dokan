@@ -31,4 +31,16 @@ HANDLE SysService::CreateFile(
 						  hTemplateFile);
 }
 
+
+BOOL SysService::CreateDirectory(
+	_In_ LPCWSTR lpPathName,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes
+	) {
+	return CreateDirectory(lpPathName, lpSecurityAttributes);
+}
+
+DWORD SysService::GetLastError(VOID) {
+	return GetLastError();
+}
+
 }

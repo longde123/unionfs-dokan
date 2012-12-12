@@ -5,7 +5,7 @@
 
 namespace UnionFS {
 
-static std::vector<LPVOID> services;
+static std::vector<LPVOID> services(10);
 
 static BOOL RegisterService(Service svc, LPVOID obj) 
 {
@@ -25,6 +25,7 @@ static BOOL UnregisterService(Service svc, LPVOID obj)
 
 LPVOID GetService(Service svc)
 {
+	assert(services[svc] != NULL);
 	return services[svc];
 }
 

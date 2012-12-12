@@ -25,13 +25,16 @@
     <ClCompile Include="src\options.cpp" />
     <ClCompile Include="src\service.cpp" />
     <ClCompile Include="src\sys.cpp" />
+    <ClCompile Include="test\branch_test.cpp" />
     <ClCompile Include="test\createdirectory_test.cpp" />
     <ClCompile Include="test\createfile_test.cpp" />
+    <ClCompile Include="test\logger_mock.cpp" />
     <ClCompile Include="test\opendirectory_test.cpp" />
     <ClCompile Include="test\options_test.cpp" />
     <ClCompile Include="test\yaffut.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="test\logger_mock.h" />
     <ClInclude Include="test\yaffut.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

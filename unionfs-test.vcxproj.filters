@@ -43,9 +43,18 @@
     <ClCompile Include="test\opendirectory_test.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="test\branch_test.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="test\logger_mock.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test\yaffut.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="test\logger_mock.h">
       <Filter>Tests</Filter>
     </ClInclude>
   </ItemGroup>

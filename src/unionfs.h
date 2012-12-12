@@ -32,8 +32,11 @@ namespace UnionFS {
 	// so I am responsible for find the right branch to work on.
 	enum BranchAccessMode { RO, RW };
 	struct IBranchService {
-		virtual BOOL AddBranch(LPCWSTR path, BranchAccessMode mode) = 0;
 		virtual ~IBranchService() = 0;
+		virtual BOOL AddBranch(LPCWSTR path, BranchAccessMode mode) = 0;
+		virtual int GetFileAttributesOnBranch(LPCWSTR filename, LPDWORD attrs, LPDWORD error) = 0;
+		virtual BOOL GetFilePath(LPWSTR path, size_t maxCount, int branchIndex, LPCWSTR filename) = 0;
+		virtual int RWBranch() = 0;
 	};
 
 	// I'm the abstract interface for file system API calls.
@@ -49,12 +52,21 @@ namespace UnionFS {
 			_In_ DWORD dwFlagsAndAttributes,
 			_In_opt_ HANDLE hTemplateFile
 			) = 0 ;
-
+		virtual BOOL CreateDirectory(
+			_In_ LPCWSTR lpPathName,
+			_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes
+			) = 0;
 		virtual DWORD GetFileAttributes(_In_ LPCTSTR lpFileName) = 0;
+		virtual DWORD GetLastError() = 0;
 		virtual ~ISysService()= 0;
 	};
 
 	struct ILoggerService {
+		virtual void Error(LPCWSTR format, ...) = 0;
+		virtual void Warning(LPCWSTR format, ...) = 0;
+		virtual void Debug(LPCWSTR format, ...) = 0;
 		virtual ~ILoggerService() = 0;
+	protected:
+		virtual void Log(LPCWSTR msg) = 0;
 	};
 }

@@ -1,7 +1,9 @@
 #include "ops.h"
 
 #include "unionfs.h"
+
 #include "assert.h"
+#include "tchar.h"
 
 namespace UnionFS {
 
@@ -29,29 +31,52 @@ static int DOKAN_CALLBACK OpenDirectory(
 	LPCWSTR					FileName,
 	PDOKAN_FILE_INFO		DokanFileInfo)
 {
-	IBranchService *branches = (IBranchService*)GetService(Branch);
-	assert(branches);
+	//IBranchService *branches = (IBranchService*)GetService(Branch);
+	//assert(branches);
 
-	DWORD errCode;
-	int idx = branches->FindBranch(AllBranches, FileName, errCode);
-	if (idx < 0)
-		return -1 *	errCode;// FIXME: should return error code from BranchService
+	//DWORD errCode;
+	//int idx = branches->FindBranch(AllBranches, FileName, errCode);
+	//if (idx < 0)
+	//	return -1 *	errCode;// FIXME: should return error code from BranchService
 
-	WCHAR filePath[MAX_PATH];
-	if (branches->GetFilePath(i, FileName, filePath, MAX_PATH, errCode))
-		return -1 * errCode;
+	//WCHAR filePath[MAX_PATH];
+	//if (branches->GetFilePath(i, FileName, filePath, MAX_PATH, errCode))
+	//	return -1 * errCode;
 
-	DWORD 
+	//DWORD 
 
 		
 
 	return 0;
 }
 
+// ERROR_ALREADY_EXISTS
+// ERROR_PATH_NOT_FOUND
 static int DOKAN_CALLBACK CreateDirectory(
 	LPCWSTR					FileName,
 	PDOKAN_FILE_INFO		DokanFileInfo)
 {
+	ILoggerService *logger = (ILoggerService*)GetService(Logger);
+	IBranchService *branches = (IBranchService*)GetService(Branch);
+	ISysService    *sys = (ISysService*)GetService(Sys);
+
+	DWORD error, attrs;
+	int index = branches->GetFileAttributesOnBranch(FileName, &attrs, &error);
+	
+	if (index >= 0)
+		return -1 * ERROR_ALREADY_EXISTS;
+
+	WCHAR filePath[MAX_PATH];
+	branches->GetFilePath(filePath, MAX_PATH, branches->RWBranch(), FileName);
+
+	logger->Debug(_T("CreateDirectory %s\n"), filePath);
+
+	if (!sys->CreateDirectory(filePath, NULL)) {
+		error = sys->GetLastError();
+		logger->Debug(_T("\t error code = %d\n"), error);
+		return -1 * error;
+	}
+
 	return 0;
 }
 
@@ -226,30 +251,30 @@ static int DOKAN_CALLBACK Unmount(
 
 
 Operations::Operations() {
-		CreateFile = CreateFile;
-		OpenDirectory = OpenDirectory;
-		CreateDirectory = CreateDirectory;
-		Cleanup = Cleanup;
-		CloseFile = CloseFile;
-		ReadFile = ReadFile;
-		WriteFile = WriteFile;
-		FlushFileBuffers = FlushFileBuffers;
-		GetFileInformation = GetFileInformation;
-		FindFiles = FindFiles;
+		CreateFile = UnionFS::CreateFile;
+		OpenDirectory = UnionFS::OpenDirectory;
+		CreateDirectory = UnionFS::CreateDirectory;
+		Cleanup = UnionFS::Cleanup;
+		CloseFile = UnionFS::CloseFile;
+		ReadFile = UnionFS::ReadFile;
+		WriteFile = UnionFS::WriteFile;
+		FlushFileBuffers = UnionFS::FlushFileBuffers;
+		GetFileInformation = UnionFS::GetFileInformation;
+		FindFiles = UnionFS::FindFiles;
 		FindFilesWithPattern = NULL;
-		SetFileAttributes = SetFileAttributes;
-		SetFileTime = SetFileTime;
-		DeleteFile = DeleteFile;
-		DeleteDirectory = DeleteDirectory;
-		MoveFile = MoveFile;
-		SetEndOfFile = SetEndOfFile;
-		SetAllocationSize = SetAllocationSize;	
-		LockFile = LockFile;
-		UnlockFile = UnlockFile;
-		GetFileSecurity = GetFileSecurity;
-		SetFileSecurity = SetFileSecurity;
+		SetFileAttributes = UnionFS::SetFileAttributes;
+		SetFileTime = UnionFS::SetFileTime;
+		DeleteFile = UnionFS::DeleteFile;
+		DeleteDirectory = UnionFS::DeleteDirectory;
+		MoveFile = UnionFS::MoveFile;
+		SetEndOfFile = UnionFS::SetEndOfFile;
+		SetAllocationSize = UnionFS::SetAllocationSize;	
+		LockFile = UnionFS::LockFile;
+		UnlockFile = UnionFS::UnlockFile;
+		GetFileSecurity = UnionFS::GetFileSecurity;
+		SetFileSecurity = UnionFS::SetFileSecurity;
 		GetDiskFreeSpace = NULL;
-		GetVolumeInformation = GetVolumeInformation;
-		Unmount = Unmount;
+		GetVolumeInformation = UnionFS::GetVolumeInformation;
+		Unmount = UnionFS::Unmount;
 	}
 }
