@@ -54,20 +54,20 @@ TEST(OpenDirectoryTests, Dir_in_RO_but_deleted_in_RW)
 
 }
 
-TEST(OpenDirectoryTests, Dir_not_exist)
-{
-	// Setup expected API call sequence for AddBranch
-	mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:/readonly").Return(FILE_ATTRIBUTE_DIRECTORY);
-	mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:/writable").Return(FILE_ATTRIBUTE_DIRECTORY);
-
-	// Setup branches.
-	YAFFUT_EQUAL(TRUE, branches->AddBranch(L"C:/readonly", RO));
-	YAFFUT_EQUAL(TRUE, branches->AddBranch(L"C:/writable", RW));
-
-	// Setup expected API call sequence for AddBranch
-	mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:/writable/SomeDir/SubDir").Return(INVALID_FILE_ATTRIBUTES);
-	mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:/readonly/SomeDir/SubDir").Return(INVALID_FILE_ATTRIBUTES);
-
-	DOKAN_FILE_INFO info;
-	YAFFUT_EQUAL(INVALID_FILE_ATTRIBUTES, ops.OpenDirectory(L"SomeDir/SomeSubDir", &info));
-}
+//TEST(OpenDirectoryTests, Dir_not_exist)
+//{
+//	// Setup expected API call sequence for AddBranch
+//	mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:/readonly").Return(FILE_ATTRIBUTE_DIRECTORY);
+//	mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:/writable").Return(FILE_ATTRIBUTE_DIRECTORY);
+//
+//	// Setup branches.
+//	YAFFUT_EQUAL(TRUE, branches->AddBranch(L"C:/readonly", RO));
+//	YAFFUT_EQUAL(TRUE, branches->AddBranch(L"C:/writable", RW));
+//
+//	// Setup expected API call sequence for AddBranch
+//	mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:/writable/SomeDir/SubDir").Return(INVALID_FILE_ATTRIBUTES);
+//	mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:/readonly/SomeDir/SubDir").Return(INVALID_FILE_ATTRIBUTES);
+//
+//	DOKAN_FILE_INFO info;
+//	YAFFUT_EQUAL(INVALID_FILE_ATTRIBUTES, ops.OpenDirectory(L"SomeDir/SomeSubDir", &info));
+//}

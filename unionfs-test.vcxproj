@@ -34,6 +34,7 @@
     <ClCompile Include="test\yaffut.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="test\hippomocks.h" />
     <ClInclude Include="test\logger_mock.h" />
     <ClInclude Include="test\yaffut.h" />
   </ItemGroup>

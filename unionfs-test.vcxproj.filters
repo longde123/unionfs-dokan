@@ -57,5 +57,8 @@
     <ClInclude Include="test\logger_mock.h">
       <Filter>Tests</Filter>
     </ClInclude>
+    <ClInclude Include="test\hippomocks.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
