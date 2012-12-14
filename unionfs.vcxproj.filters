@@ -30,6 +30,9 @@
     <ClCompile Include="src\cow.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="src\path.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\unionfs.h">
@@ -48,6 +51,9 @@
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="src\cow.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\path.h">
       <Filter>Sources</Filter>
     </ClInclude>
   </ItemGroup>

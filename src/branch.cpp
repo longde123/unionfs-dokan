@@ -1,7 +1,8 @@
 #include "unionfs.h"
 #include "branch.h"
+#include "path.h"
 
-#include "tchar.h"
+#include <assert.h>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -29,6 +30,8 @@ namespace UnionFS {
         int RWBranch();
     private:
         void appendPath(std::wstring &base, LPCWSTR path);
+        BOOL isDeleted(LPCWSTR filename);
+        BOOL getDeletedFilePath(LPWSTR path, size_t maxCount, LPCWSTR filename);
     };
 
     // Api implementation
@@ -116,10 +119,20 @@ namespace UnionFS {
         }
         );
 
+        int index = iter == _branches.end() ? -1 : std::distance(_branches.begin(), iter);
+
+        // check if file is deleted?
+        if (index != -1 && index != RWBranch() && isDeleted(filename)) {
+            index = -1;
+            attrs = INVALID_FILE_ATTRIBUTES;
+            error = ERROR_PATH_NOT_FOUND;
+        }
+            
+
         if (pattrs) *pattrs = attrs;
         if (perror) *perror = error;
 
-        return iter == _branches.end() ? -1 : std::distance(_branches.begin(), iter);
+        return index;
     }
 
     BOOL BranchServiceImpl::GetFilePath(LPWSTR path, size_t maxCount, int branchIndex, LPCWSTR filename) {
@@ -146,9 +159,10 @@ namespace UnionFS {
         auto found = std::find_if(_branches.begin(), _branches.end(), 
             [](const BranchOption& o) {
                 return o.mode == RW;
-        }
+            }
         );
-        return found == _branches.end() ? -1 : found - _branches.begin();
+        assert(found != _branches.end());
+        return found - _branches.begin();
     }
 
     void BranchServiceImpl::appendPath(std::wstring &base, LPCWSTR path) {
@@ -157,4 +171,38 @@ namespace UnionFS {
         base += path;
     }
 
+    BOOL BranchServiceImpl::isDeleted(LPCWSTR filename) {
+        ISysService *sys = (ISysService*)GetService(Sys);
+        ILoggerService *logger = (ILoggerService*)GetService(Logger);
+
+        BOOL isDeleted = FALSE;
+        DWORD attrs;
+        WCHAR deletedPath[MAX_PATH];
+        walkPath(filename, [&](LPCWSTR path) -> WalkPathAction {
+            if (!getDeletedFilePath(deletedPath, MAX_PATH, path)) 
+                return WalkStop; // buffer too small, doesn't make sense to continue walking, path will be longer and longer
+            attrs = sys->GetFileAttributes(deletedPath);
+            if (attrs != INVALID_FILE_ATTRIBUTES) {
+                isDeleted = TRUE;
+                return WalkStop; // doesn't exist
+            }
+            return WalkContinue;
+        });
+        return isDeleted;
+    }
+
+     BOOL BranchServiceImpl::getDeletedFilePath(LPWSTR path, size_t maxCount, LPCWSTR filename) {
+         ILoggerService *logger = (ILoggerService*)GetService(Logger);
+
+         std::wstring temp = _branches[RWBranch()].path;
+         appendPath(temp, L".unionfs");
+         appendPath(temp, filename);
+         temp += L"_deleted";
+
+         if (wcscpy_s(path, maxCount, temp.c_str()) != 0) {
+             logger->Warning(L"getDeletedFilePath failed, path=%x maxCount=%d filename=%s", path, maxCount, filename);
+             return FALSE;
+         }
+         return TRUE;
+     }
 } //End of UnionFS namespace

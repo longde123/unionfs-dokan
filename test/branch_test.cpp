@@ -5,7 +5,6 @@
 #include "yaffut.h"
 #include "hippomocks.h"
 #include "logger_mock.h"
-#include "tchar.h"
 
 using namespace UnionFS;
 
@@ -36,49 +35,115 @@ protected:
 
 TEST(BranchTests, AddBranch_simple)
 {
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\RO")).Return(FILE_ATTRIBUTE_DIRECTORY);
-    YAFFUT_EQUAL(TRUE, branches->AddBranch(_T("C:\\RO"), RO));
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RO").Return(FILE_ATTRIBUTE_DIRECTORY);
+    YAFFUT_EQUAL(TRUE, branches->AddBranch(L"C:\\RO", RO));
 }
 
 TEST(BranchTests, AddBranch_added_path)
 {
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\RO")).Return(FILE_ATTRIBUTE_DIRECTORY);
-    loggerMock.Expect(_T("Error:branch already registered"));
-    loggerMock.Expect(_T("Error:branch already registered with different mode"));
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RO").Return(FILE_ATTRIBUTE_DIRECTORY);
+    loggerMock.Expect(L"Error:branch already registered");
+    loggerMock.Expect(L"Error:branch already registered with different mode");
 
-    YAFFUT_EQUAL(TRUE,  branches->AddBranch(_T("C:\\RO"), RO));
-    YAFFUT_EQUAL(FALSE, branches->AddBranch(_T("C:\\RO"), RO)); //readd should be rejected.
-    YAFFUT_EQUAL(FALSE, branches->AddBranch(_T("C:\\RO"), RW)); //even different mode.
+    YAFFUT_EQUAL(TRUE,  branches->AddBranch(L"C:\\RO", RO));
+    YAFFUT_EQUAL(FALSE, branches->AddBranch(L"C:\\RO", RO)); //readd should be rejected.
+    YAFFUT_EQUAL(FALSE, branches->AddBranch(L"C:\\RO", RW)); //even different mode.
 }
 
 TEST(BranchTests, AddBranch_path_not_exist)
 {
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\NotExist")).Return(INVALID_FILE_ATTRIBUTES);
-    loggerMock.Expect(_T("Error:path does not exist"));
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\NotExist").Return(INVALID_FILE_ATTRIBUTES);
+    loggerMock.Expect(L"Error:path does not exist");
 
-    YAFFUT_EQUAL(FALSE, branches->AddBranch(_T("C:\\NotExist"), RO));
+    YAFFUT_EQUAL(FALSE, branches->AddBranch(L"C:\\NotExist", RO));
 }
 
-TEST(BranchTests, AddBranch_path_is_a_file_path)
-{
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\MyFile")).Return(FILE_ATTRIBUTE_ARCHIVE);
-    loggerMock.Expect(_T("Error:path is not a directory"));
+TEST(BranchTests, AddBranch_path_is_a_file_path) {
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\MyFile").Return(FILE_ATTRIBUTE_ARCHIVE);
+    loggerMock.Expect(L"Error:path is not a directory");
 
-    YAFFUT_EQUAL(FALSE, branches->AddBranch(_T("C:\\MyFile"), RO));
+    YAFFUT_EQUAL(FALSE, branches->AddBranch(L"C:\\MyFile", RO));
 }
 
-TEST(BranchTests, GetFileAttributesOnBranch) {
 
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\RO")).Return(FILE_ATTRIBUTE_DIRECTORY);
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\RW")).Return(FILE_ATTRIBUTE_DIRECTORY);
-    branches->AddBranch(_T("C:\\RO"), RO);
-    branches->AddBranch(_T("C:\\RW"), RW);
+class GetFileAttributesOnBranchTests : public BranchTests {
+public:
+    GetFileAttributesOnBranchTests() {
+        // set up two branches one for RW another for RW.
+        mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RO").Return(FILE_ATTRIBUTE_DIRECTORY);
+        mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW").Return(FILE_ATTRIBUTE_DIRECTORY);
+        branches->AddBranch(L"C:\\RO", RO);
+        branches->AddBranch(L"C:\\RW", RW);
+    }
+};
 
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\RW\\MyDir\\MyFile")).Return(FILE_ATTRIBUTE_ARCHIVE);
+TEST(GetFileAttributesOnBranchTests, file_in_rw_branch) {
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW\\MyFile").Return(FILE_ATTRIBUTE_ARCHIVE);
     mocks.ExpectCall(sys, ISysService::GetLastError).Return(ERROR_SUCCESS);
     DWORD attrs = 0, error = 0;
-    YAFFUT_EQUAL(0, branches->GetFileAttributesOnBranch(_T("MyDir\\MyFile"), &attrs, &error));
+    YAFFUT_EQUAL(0, branches->GetFileAttributesOnBranch(L"MyFile", &attrs, &error));
 }
+
+TEST(GetFileAttributesOnBranchTests, file_in_ro_branch) {
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW\\MyFile").Return(INVALID_FILE_ATTRIBUTES);
+    mocks.ExpectCall(sys, ISysService::GetLastError).Return(ERROR_PATH_NOT_FOUND);
+
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RO\\MyFile").Return(FILE_ATTRIBUTE_ARCHIVE);
+    mocks.ExpectCall(sys, ISysService::GetLastError).Return(ERROR_SUCCESS);
+
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW\\.unionfs\\MyFile_deleted").Return(INVALID_FILE_ATTRIBUTES);
+
+    DWORD attrs = 0, error = 0;
+    YAFFUT_EQUAL(1, branches->GetFileAttributesOnBranch(L"MyFile", &attrs, &error));
+    YAFFUT_EQUAL(FILE_ATTRIBUTE_ARCHIVE, attrs);
+    YAFFUT_EQUAL(ERROR_SUCCESS, error);
+}
+
+//same as file doesn't exist at all
+TEST(GetFileAttributesOnBranchTests, file_in_rw_branch_deleted) {
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW\\MyFile").Return(INVALID_FILE_ATTRIBUTES);
+    mocks.ExpectCall(sys, ISysService::GetLastError).Return(ERROR_PATH_NOT_FOUND);
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RO\\MyFile").Return(INVALID_FILE_ATTRIBUTES);
+    mocks.ExpectCall(sys, ISysService::GetLastError).Return(ERROR_PATH_NOT_FOUND);
+    DWORD attrs = 0, error = 0;
+    YAFFUT_EQUAL(-1, branches->GetFileAttributesOnBranch(L"MyFile", &attrs, &error));
+    YAFFUT_EQUAL(INVALID_FILE_ATTRIBUTES, attrs);
+    YAFFUT_EQUAL(ERROR_PATH_NOT_FOUND, error);
+}
+
+
+TEST(GetFileAttributesOnBranchTests, file_in_ro_branch_deleted) {
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW\\MyFile").Return(INVALID_FILE_ATTRIBUTES);
+    mocks.ExpectCall(sys, ISysService::GetLastError).Return(ERROR_PATH_NOT_FOUND);
+
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RO\\MyFile").Return(FILE_ATTRIBUTE_ARCHIVE);
+    mocks.ExpectCall(sys, ISysService::GetLastError).Return(ERROR_SUCCESS);
+
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW\\.unionfs\\MyFile_deleted").Return(FILE_ATTRIBUTE_ARCHIVE);
+
+    DWORD attrs = 0, error = 0;
+    YAFFUT_EQUAL(-1, branches->GetFileAttributesOnBranch(L"MyFile", &attrs, &error));
+    YAFFUT_EQUAL(INVALID_FILE_ATTRIBUTES, attrs);
+    YAFFUT_EQUAL(ERROR_PATH_NOT_FOUND, error);
+}
+
+// multiple level dir
+TEST(GetFileAttributesOnBranchTests, multi_level_file_in_ro_branch_file_deleted) {
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW\\MyDir\\MyFile").Return(INVALID_FILE_ATTRIBUTES);
+    mocks.ExpectCall(sys, ISysService::GetLastError).Return(ERROR_PATH_NOT_FOUND);
+
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RO\\MyDir\\MyFile").Return(FILE_ATTRIBUTE_ARCHIVE);
+    mocks.ExpectCall(sys, ISysService::GetLastError).Return(ERROR_SUCCESS);
+
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW\\.unionfs\\MyDir_deleted").Return(INVALID_FILE_ATTRIBUTES);
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW\\.unionfs\\MyDir\\MyFile_deleted").Return(FILE_ATTRIBUTE_ARCHIVE);
+
+    DWORD attrs = 0, error = 0;
+    YAFFUT_EQUAL(-1, branches->GetFileAttributesOnBranch(L"MyDir\\MyFile", &attrs, &error));
+    YAFFUT_EQUAL(INVALID_FILE_ATTRIBUTES, attrs);
+    YAFFUT_EQUAL(ERROR_PATH_NOT_FOUND, error);
+}
+
 
 TEST(BranchTests, GetFilePath_simple)
 {
@@ -109,20 +174,20 @@ TEST(BranchTests, GetFilePath_buffer_too_small)
 }
 
 TEST(BranchTests, RWBranch) {
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\RO")).Return(FILE_ATTRIBUTE_DIRECTORY);
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\RW")).Return(FILE_ATTRIBUTE_DIRECTORY);
-    branches->AddBranch(_T("C:\\RO"), RO);
-    branches->AddBranch(_T("C:\\RW"), RW);
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RO").Return(FILE_ATTRIBUTE_DIRECTORY);
+    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW").Return(FILE_ATTRIBUTE_DIRECTORY);
+    branches->AddBranch(L"C:\\RO", RO);
+    branches->AddBranch(L"C:\\RW", RW);
 
     YAFFUT_EQUAL(0, branches->RWBranch());
 }
 
 
-TEST(BranchTests, RWBranch_not_found) {
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\RO")).Return(FILE_ATTRIBUTE_DIRECTORY);
-    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(_T("C:\\RW")).Return(FILE_ATTRIBUTE_DIRECTORY);
-    branches->AddBranch(_T("C:\\RO"), RO);
-    branches->AddBranch(_T("C:\\RW"), RO); // on purpose
-
-    YAFFUT_EQUAL(-1, branches->RWBranch());
-}
+//TEST(BranchTests, RWBranch_not_found) {
+//    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RO").Return(FILE_ATTRIBUTE_DIRECTORY);
+//    mocks.ExpectCall(sys, ISysService::GetFileAttributes).With(L"C:\\RW").Return(FILE_ATTRIBUTE_DIRECTORY);
+//    branches->AddBranch(L"C:\\RO", RO);
+//    branches->AddBranch(L"C:\\RW", RO); // on purpose
+//
+//    YAFFUT_EQUAL(-1, branches->RWBranch());
+//}

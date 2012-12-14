@@ -1,8 +1,8 @@
 #include "ops.h"
 
 #include "unionfs.h"
+#include "path.h"
 
-#include "assert.h"
 #include <string>
 
 namespace UnionFS {
@@ -31,22 +31,36 @@ namespace UnionFS {
         LPCWSTR					FileName,
         PDOKAN_FILE_INFO		DokanFileInfo)
     {
-        //IBranchService *branches = (IBranchService*)GetService(Branch);
-        //assert(branches);
+        IBranchService *branches = (IBranchService*)GetService(Branch);
+        ISysService    *sys      = (ISysService*)GetService(Sys);
+        ILoggerService *logger   = (ILoggerService*)GetService(Logger);
+        
+        DWORD attrs = 0, error = ERROR_SUCCESS;
+        int index = branches->GetFileAttributesOnBranch(FileName, &attrs, &error);   
+        if (index == -1)
+            return -1 * error;
 
-        //DWORD errCode;
-        //int idx = branches->FindBranch(AllBranches, FileName, errCode);
-        //if (idx < 0)
-        //	return -1 *	errCode;// FIXME: should return error code from BranchService
+        WCHAR filePath[MAX_PATH];
+        if (!branches->GetFilePath(filePath, MAX_PATH, index, FileName))
+            return -1;
 
-        //WCHAR filePath[MAX_PATH];
-        //if (branches->GetFilePath(i, FileName, filePath, MAX_PATH, errCode))
-        //	return -1 * errCode;
+        logger->Debug(L"OpenDirectory: %s", FileName);
 
-        //DWORD 
+        HANDLE h = sys->CreateFile(filePath,
+                                   0,
+                                   FILE_SHARE_READ|FILE_SHARE_WRITE,
+                                   NULL,
+                                   OPEN_EXISTING,
+                                   FILE_FLAG_BACKUP_SEMANTICS,
+                                   NULL);
 
-
-
+        if (h == INVALID_HANDLE_VALUE) {
+            error = sys->GetLastError();
+            logger->Debug(L"\terror code = %d", error);
+            return -1 * error;
+        }
+                                
+        DokanFileInfo->Context = (ULONG64)h;
         return 0;
     }
 
@@ -64,26 +78,24 @@ namespace UnionFS {
         ISysService *sys = (ISysService*)GetService(Sys);
         ILoggerService *logger = (ILoggerService*)GetService(Logger);
 
-        std::wstring directory(fileName);
         WCHAR fullPath[MAX_PATH];
         DWORD error = ERROR_SUCCESS;
-        auto iter = directory.begin();
-        do {
-            iter = std::find(iter, directory.end(), L'\\');
-            branches->GetFilePath(fullPath, MAX_PATH, branchIndex, std::wstring(directory.begin(), iter).c_str());
+        walkPath(fileName, [&](LPCWSTR path) ->WalkPathAction {
+            if (!branches->GetFilePath(fullPath, MAX_PATH, branchIndex, path)) {
+                error = ERROR_PATH_NOT_FOUND;
+                return WalkStop;
+            }
             logger->Debug(L"CreateDirectory %s", fullPath);
             if (!sys->CreateDirectory(fullPath, psa)) {
                 error = sys->GetLastError();
                 logger->Debug(L"\t error code = %d", error);
-                return -1 * error;
+                return WalkStop;
             }
-            if (iter != directory.end()) iter++;
-        } while (iter != directory.end());
-        return ERROR_SUCCESS;
+            return WalkContinue;
+        });
+        return error;
     }
 
-    // ERROR_ALREADY_EXISTS
-    // ERROR_PATH_NOT_FOUND
     static int DOKAN_CALLBACK CreateDirectory(
         LPCWSTR					FileName,
         PDOKAN_FILE_INFO		DokanFileInfo)

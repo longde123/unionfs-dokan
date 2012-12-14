@@ -27,6 +27,9 @@ namespace UnionFS {
     }
 
     LoggerMock::~LoggerMock() {
+        if (!_enabled)
+            return;
+
         auto actual = _actuals.begin();
         auto expect = _expects.begin();
 

@@ -20,9 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\branch.cpp" />
+    <ClCompile Include="src\cow.cpp" />
     <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\ops.cpp" />
     <ClCompile Include="src\options.cpp" />
+    <ClCompile Include="src\path.cpp" />
     <ClCompile Include="src\service.cpp" />
     <ClCompile Include="src\sys.cpp" />
     <ClCompile Include="test\branch_test.cpp" />

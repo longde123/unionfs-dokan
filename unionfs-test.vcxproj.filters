@@ -49,6 +49,12 @@
     <ClCompile Include="test\logger_mock.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="src\cow.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\path.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test\yaffut.h">
